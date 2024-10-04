@@ -145,14 +145,6 @@ Resources:
         - Key: Name
           Value: CSPrivateRouteTable1
 
-  CSPrivateRouteTable2:
-    Type: 'AWS::EC2::RouteTable'
-    Properties:
-      VpcId: !Ref CSVPC
-      Tags:
-        - Key: Name
-          Value: CSPrivateRouteTable2
-
   CSPrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -162,7 +154,7 @@ Resources:
   CSPrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref CSPrivateRouteTable2
+      RouteTableId: !Ref CSPrivateRouteTable1
       SubnetId: !Ref CSPrivateSubnet2
 
   CSPrivateRoute1:
@@ -171,13 +163,6 @@ Resources:
       RouteTableId: !Ref CSPrivateRouteTable1
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref CSNatGateway1
-
-  CSPrivateRoute2:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref CSPrivateRouteTable2
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref CSNatGateway2
 
   CSNatGateway1:
     Type: AWS::EC2::NatGateway
@@ -188,21 +173,7 @@ Resources:
         - Key: Name
           Value: CSNatGateway1
 
-  CSNatGateway2:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      SubnetId: !Ref CSPubSubnet2
-      AllocationId: !GetAtt ElasticIPAddress2.AllocationId
-      Tags:
-        - Key: Name
-          Value: CSNatGateway2
-
   ElasticIPAddress1:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-
-  ElasticIPAddress2:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
