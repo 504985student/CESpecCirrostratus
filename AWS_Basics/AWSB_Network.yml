@@ -141,11 +141,23 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       SubnetId: !Ref CSPubSubnet1
+      AllocationId: !GetAtt ElasticIPAddress1.AllocationId
 
   CSNatGateway2:
     Type: AWS::EC2::NatGateway
     Properties:
       SubnetId: !Ref CSPubSubnet2
+      AllocationId: !GetAtt ElasticIPAddress2.AllocationId
+
+  ElasticIPAddress1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: CSVPC
+
+  ElasticIPAddress2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: CSVPC
       
 # Define outputs so values can be imported in another template
 Outputs:
