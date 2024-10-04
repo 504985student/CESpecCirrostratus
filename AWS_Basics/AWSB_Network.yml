@@ -152,12 +152,12 @@ Resources:
   ElasticIPAddress1:
     Type: AWS::EC2::EIP
     Properties:
-      Domain: CSVPC
+      Domain: vpc
 
   ElasticIPAddress2:
     Type: AWS::EC2::EIP
     Properties:
-      Domain: CSVPC
+      Domain: vpc
       
 # Define outputs so values can be imported in another template
 Outputs:
