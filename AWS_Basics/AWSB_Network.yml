@@ -137,6 +137,48 @@ Resources:
         - Key: Name
           Value: CSPrivateSubnet2
 
+  CSPrivateRouteTable1:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref CSVPC
+      Tags:
+        - Key: Name
+          Value: CSPrivateRouteTable1
+
+  CSPrivateRouteTable2:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref CSVPC
+      Tags:
+        - Key: Name
+          Value: CSPrivateRouteTable2
+
+  CSPrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref CSPrivateRouteTable1
+      SubnetId: !Ref CSPrivateSubnet1
+
+  CSPrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref CSPrivateRouteTable2
+      SubnetId: !Ref CSPrivateSubnet2
+
+  CSPrivateRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref CSPrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref CSNatGateway1
+
+  CSPrivateRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref CSPrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref CSNatGateway2
+
   CSNatGateway1:
     Type: AWS::EC2::NatGateway
     Properties:
@@ -154,20 +196,6 @@ Resources:
       Tags:
         - Key: Name
           Value: CSNatGateway2
-
-  CSPrivateRoute1:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref CSRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref CSNatGateway1
-
-  CSPrivateRoute2:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref CSRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref CSNatGateway2
 
   ElasticIPAddress1:
     Type: AWS::EC2::EIP
