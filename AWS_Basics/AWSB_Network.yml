@@ -137,6 +137,16 @@ Resources:
         - Key: Name
           Value: CSPrivateSubnet2
 
+  CSNatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref CSPubSubnet1
+
+  CSNatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref CSPubSubnet2
+      
 # Define outputs so values can be imported in another template
 Outputs:
   CSVPCRef:
