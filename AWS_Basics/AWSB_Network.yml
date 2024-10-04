@@ -142,12 +142,28 @@ Resources:
     Properties:
       SubnetId: !Ref CSPubSubnet1
       AllocationId: !GetAtt ElasticIPAddress1.AllocationId
+    # TODO: Add Tags
 
   CSNatGateway2:
     Type: AWS::EC2::NatGateway
     Properties:
       SubnetId: !Ref CSPubSubnet2
       AllocationId: !GetAtt ElasticIPAddress2.AllocationId
+    # TODO: Add Tags
+
+  CSPrivateRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref CSRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGateWayId: !Ref CSNatGateway1
+
+  CSPrivateRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref CSRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGateWayId: !Ref CSNatGateway2
 
   ElasticIPAddress1:
     Type: AWS::EC2::EIP
