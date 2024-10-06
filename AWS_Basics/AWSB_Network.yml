@@ -160,7 +160,7 @@ Resources:
   CSPrivateRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref CSPrivateRouteTable1
+      RouteTableId: !Ref CSPrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref CSNatGateway
 
