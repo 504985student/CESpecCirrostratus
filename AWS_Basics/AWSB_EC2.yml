@@ -1,0 +1,38 @@
+Description: Template for EC2 instance with Cloudshirt
+
+Resources:
+    CSEC2Instance:
+        Type: AWS::EC2::Instance
+        Properties:
+            BlockDeviceMappings: 
+            - DeviceName: /dev/xvda
+            Ebs:
+                DeleteOnTermination: true 
+                VolumeType: gp3
+                VolumeSize: 30
+                Encrypted: "true" 
+            InstanceType: t2.micro 
+            ImageId: ami-0ebfd941bbafe70c6 #Needs to be AMI 2023
+            KeyName: vockey 
+            SecurityGroupIds: 
+            - !ImportValue  CSNetwork:SecurityGroupId 
+            SubnetId: !ImportValue CSNetwork:CSPubSubnet1 #Deploy the instance in the public subnet
+            UserData: 
+                Fn::Base64: !Sub |
+                    #!/bin/bash
+                    yum update -y
+                    git clone https://github.com/TimothySealy/cac-simple-webapp.git
+                    cd cac-simple-webapp
+                    npm install
+                    npm run start
+            
+            RDSENDPOINT:
+                Fn::ImportValue: CSDB:DBEndpoint
+
+
+Outputs:
+    EC2InstanceId:
+        Description: ""
+        Value: !Ref CSEC2Instance
+        Export:
+            Name: !Join [ ":", [ !Ref "AWS::StackName", EC2InstanceId ] ] 
