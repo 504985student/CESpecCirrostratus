@@ -80,14 +80,26 @@ Resources:
           Value: CSRDSSecurityGroup
 
 Outputs:
-  CSRDSDBInstance:
+  CSRDSDBInstanceId:
     Description: Reference to the CS RDS
     Value: !Ref CSRDSDBInstance
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSDBInstance ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSDBInstanceId ] ]
 
-  CSRDSSecurityGroup:
+  CSRDSSecurityGroupId:
     Description: Reference to the CS RDS Security Group
     Value: !Ref CSRDSSecurityGroup
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSSecurityGroup ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSSecurityGroupId ] ]
+
+  CSRDSEndpoint:
+    Description: "Endpoint of the RDS"
+    Value: !GetAtt CSRDSDBInstance.Endpoint.Address
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSEndpoint ] ] 
+
+  CSRDSPort:
+    Description: "Port of the RDS"
+    Value: !GetAtt CSRDSDBInstance.Endpoint.Port
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSPort ] ]
