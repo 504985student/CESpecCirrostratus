@@ -1,7 +1,7 @@
 Description: An Amazon RDS
 Parameters:
   DBInstanceID:
-    Default: ToDoRDSDB
+    Default: CSRDSDB
     Description: the database instance
     Type: String
 
@@ -32,19 +32,19 @@ Parameters:
     Type: String
 
 Resources:
-  rdsDBSubnetGroup:
+  CSRDSDBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: SubnetGroup for the ToDo DB
+      DBSubnetGroupDescription: SubnetGroup for the CS App DB
       SubnetIds:
         - !ImportValue CSNetwork:CSPrivateSubnet1
         - !ImportValue CSNetwork:CSPrivateSubnet2
       Tags:
         - Key: Name
-          Value: ToDoRdsDBSubnetGroup
+          Value: CSRDSDBSubnetGroup
 
 
-  ToDoRDSDBInstance:
+  CSRDSDBInstance:
     Type: AWS::RDS::DBInstance
     Properties:
       AllocatedStorage: 50 #Storage allocated at creation
@@ -53,7 +53,7 @@ Resources:
       AvailabilityZone: !ImportValue CSNetwork:AvailabilityZone1 
       DBInstanceIdentifier: !Ref DBInstanceID
       DBName: !Ref DBName
-      DBSubnetGroupName: !Ref rdsDBSubnetGroup #Note that updating this requires replacement of the resource
+      DBSubnetGroupName: !Ref CSRDSDBSubnetGroup #Note that updating this requires replacement of the resource
       Engine: postgres
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
@@ -64,24 +64,30 @@ Resources:
       PubliclyAccessible: false
       StorageType: gp2
       VPCSecurityGroups: 
-        - !Ref ToDoRDSSecurityGroup
+        - !Ref CSRDSSecurityGroup
       Tags:
         - Key: Name
-          Value: ToDoRDSDBInstance
+          Value: CSRDSDBInstance
 
-  ToDoRDSSecurityGroup:
+  CSRDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: ToDoRDSSecurityGroup
-      GroupDescription: SecurityGroup for the ToDo App to the VPC
+      GroupName: CSRDSSecurityGroup
+      GroupDescription: SecurityGroup for the CS App to the VPC
       VpcId: !ImportValue CSNetwork:CSVPC
       Tags:
         - Key: Name
-          Value: ToDoRDSSecurityGroup
+          Value: CSRDSSecurityGroup
 
 Outputs:
-  ToDoRDSDBInstance:
-    Description: Reference to the ToDo RDS
-    Value: !Ref ToDoRDSDBInstance
+  CSRDSDBInstance:
+    Description: Reference to the CS RDS
+    Value: !Ref CSRDSDBInstance
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", ToDoRDSDBInstance ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSDBInstance ] ]
+
+  CSRDSSecurityGroup:
+    Description: Reference to the CS RDS Security Group
+    Value: !Ref CSRDSSecurityGroup
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRDSSecurityGroup ] ]
