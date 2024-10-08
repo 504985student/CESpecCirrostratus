@@ -1,12 +1,12 @@
-Description: Template for EC2 instance with Cloudshirt
+Description: Template for EC2 instance with ToDo app (the EC2 instance launches, but the app does not deploy)
 
 Resources:
     CSEC2Instance:
         Type: AWS::EC2::Instance
         Properties:
             BlockDeviceMappings: 
-            - DeviceName: /dev/xvda
-            Ebs:
+            - DeviceName: "/dev/xvda"
+              Ebs:
                 DeleteOnTermination: true 
                 VolumeType: gp3
                 VolumeSize: 30
@@ -14,21 +14,19 @@ Resources:
             InstanceType: t2.micro 
             ImageId: ami-0ebfd941bbafe70c6 #Needs to be AMI 2023
             KeyName: vockey 
-            SecurityGroupIds: 
-            - !ImportValue  CSNetwork:SecurityGroupId 
             SubnetId: !ImportValue CSNetwork:CSPubSubnet1 #Deploy the instance in the public subnet
             UserData: 
-                Fn::Base64: !Sub |
-                    #!/bin/bash
-                    yum update -y
-                    git clone https://github.com/TimothySealy/cac-simple-webapp.git
-                    cd cac-simple-webapp
-                    npm install
-                    npm run start
-            
-            RDSENDPOINT:
-                Fn::ImportValue: CSDB:DBEndpoint
-
+                Fn::Base64: 
+                    !Sub |
+                        #!/bin/bash
+                        yum update -y
+                        git clone https://github.com/TimothySealy/cac-simple-webapp.git
+                        cd cac-simple-webapp
+                        npm install
+                        npm run start
+            Tags:
+                -Key: Name
+                Value: CSEC2Instance
 
 Outputs:
     EC2InstanceId:
