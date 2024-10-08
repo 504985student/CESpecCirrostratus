@@ -1,0 +1,87 @@
+Description: An Amazon RDS
+Parameters:
+  DBInstanceID:
+    Default: ToDoRDSDB
+    Description: the database instance
+    Type: String
+
+  DBName:
+    Default: postgres
+    Description: Database name
+    Type: String
+
+  DBInstanceClass:
+    Default: db.t3.micro
+    Description: DB instance class
+    Type: String
+
+  DBUsername:
+    Default: cloudstrife
+    Description: Username for MySQL database access
+    Type: String
+
+  DBPassword:
+    NoEcho: true
+    Default: postgres
+    Description: Password MySQL database access
+    Type: String
+
+  DBPort:
+    Default: '3000'
+    Description: Specifiy the port to use, take note of the default port in the application
+    Type: String
+
+Resources:
+  rdsDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: SubnetGroup for the ToDo DB
+      SubnetIds:
+        - !ImportValue CSNetwork:CSPrivateSubnet1
+        - !ImportValue CSNetwork:CSPrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: ToDoRdsDBSubnetGroup
+
+
+  ToDoRDSDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 50 #Storage allocated at creation
+      MaxAllocatedStorage: 99 #The maximum amount the resource can be scaled up to, set to 99 in order to not exceed the maximun allowed for the learner lab
+      DBInstanceClass: !Ref DBInstanceClass
+      AvailabilityZone: !ImportValue CSNetwork:AvailabilityZone1 
+      DBInstanceIdentifier: !Ref DBInstanceID
+      DBName: !Ref DBName
+      DBSubnetGroupName: !Ref rdsDBSubnetGroup #Note that updating this requires replacement of the resource
+      Engine: postgres
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      MonitoringInterval: 0 #default is 0, but we turn it off because enhanced monitoring is not allowed in learner lab
+      MultiAZ: false
+      NetworkType: IPV4
+      Port: !Ref DBPort
+      PubliclyAccessible: false
+      StorageType: gp2
+      VPCSecurityGroups: 
+        - !Ref ToDoRDSSecurityGroup
+      Tags:
+        - Key: Name
+          Value: ToDoRDSDBInstance
+
+  ToDoRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ToDoRDSSecurityGroup
+      GroupDescription: SecurityGroup for the ToDo App to the VPC
+      VpcId: !ImportValue CSNetwork:CSVPC
+      Tags:
+        - Key: Name
+          Value: ToDoRDSSecurityGroup
+
+Outputs:
+  ToDoRDSDBInstance:
+    Description: Reference to the ToDo RDS
+    Value: !Ref ToDoRDSDBInstance
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", ToDoRDSDBInstance ] ]
