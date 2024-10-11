@@ -187,7 +187,7 @@ Outputs:
     Description: Reference to the VPC
     Value: !Ref CSVPC
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", CSVPC ] ] # Fancy way of making the exported variable called "MyBase:VPC"
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSVPC ] ] 
 
   CSVPCGatewayAttachmentRef:
     Description: Reference to the VPC gateway attachment
