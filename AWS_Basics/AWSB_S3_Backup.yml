@@ -1,0 +1,23 @@
+Resources:
+  S3BackupBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: cs-bucket-cespec-backup
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration: 
+        Rules:
+          - Id: CleanupOldBackups
+            Status: Enabled
+            ExpirationInDays: 365
+            NoncurrentVersionExpirationInDays: 30 
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  BackupBucketName:
+    Value: !Ref S3BackupBucket
+    Description: Name of the S3 Backup Bucket
