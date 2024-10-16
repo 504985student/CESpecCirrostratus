@@ -1,0 +1,66 @@
+Resources:
+
+  # Lambda function for backup
+  S3BackupLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: S3BackupFunction
+      Handler: index.lambda_handler
+      Role: arn:aws:iam::834518821518:role/LabRole  # Use LabRole ARN here
+      Code:
+        ZipFile: |
+          import boto3
+          import os
+          def lambda_handler(event, context):
+              s3 = boto3.client('s3')
+              source_bucket = 'cs-bucket-cespec-cirrostratus'
+              backup_bucket = 'cs-bucket-cespec-backup'
+              # Copy each object from the source to the backup bucket
+              objects = s3.list_objects_v2(Bucket=source_bucket)
+              for obj in objects.get('Contents', []):
+                  copy_source = {'Bucket': source_bucket, 'Key': obj['Key']}
+                  s3.copy_object(CopySource=copy_source, Bucket=backup_bucket, Key=obj['Key'])
+              return "Backup complete"
+      Runtime: python3.9
+      Timeout: 60
+
+  # Create CloudWatch Events Rule for Daily Scheduling the Lambda Function
+  BackupScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(0 0 * * ? *)  # Daily at midnight UTC
+      Targets:
+        - Arn: !GetAtt S3BackupLambdaFunction.Arn
+          Id: S3BackupLambdaTarget
+
+  # CloudWatch Events Rule for Immediate Backup (1 minute after stack creation)
+  ImmediateBackupScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(1 minute)  # Runs every minute
+      Targets:
+        - Arn: !GetAtt S3BackupLambdaFunction.Arn
+          Id: ImmediateBackupLambdaTarget
+
+  # Grant CloudWatch permission to invoke the Lambda function for daily backups
+  DailyLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref S3BackupLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt BackupScheduleRule.Arn
+
+  # Grant CloudWatch permission to invoke the Lambda function for immediate backups
+  ImmediateLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref S3BackupLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ImmediateBackupScheduleRule.Arn
+
+Outputs:
+  LambdaFunctionName:
+    Description: "The name of the Lambda function"
+    Value: !Ref S3BackupLambdaFunction
