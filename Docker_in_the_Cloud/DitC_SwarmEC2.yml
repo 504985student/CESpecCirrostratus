@@ -1,3 +1,41 @@
-Description: AutoScaling Group for Cloudshirt on Docker
+Description: EC2 instance that provisions a server with docker engine
 
 Resources:
+  DockerSwarmTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: DockerSwarmTemplate
+      LaunchTemplateData:
+        KeyName: Vockey
+#       SecurityGroups: !ImportValue CSSecurityGroup #Note: there is currently no SG present in the CF templates for this assignment
+        InstanceType: t3.medium
+        ImageId: ami-06b21ccaeff8cd686
+        UserData:
+          Fn::Base64: !Sub |
+              #!/bin/bash
+              sudo yum install -y yum-utils
+              sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+              sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+              sudo systemctl start docker
+              sudo docker run hello-world
+#            usermod -a -G docker ec2-user
+# alternatively; docker convenience script
+# curl -fsSL https://get.docker.com -o get-docker.sh
+# sudo sh get-docker.sh
+
+#   IamInstanceProfile: might be needed later
+
+
+  DockerSwarmMasterInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref DockerSwarmTemplate
+        Version: !GetAtt DockerSwarmTemplate.DefaultVersionNumber
+      AvailabilityZone: !ImportValue CSNetworkDock:AvailabilityZone1
+      SubnetId: !ImportValue CSNetworkDock:CSPubSubnet1
+
+
+

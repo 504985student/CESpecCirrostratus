@@ -85,8 +85,7 @@ Resources:
         - Key: Name
           Value: CSPubSubnet2
 
-  # Add a routing table (and route) to the VPC to route all traffic
-  # via the internet gateway
+  # Add a routing table (and route) to the VPC to route all traffic via the internet gateway
   CSRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -168,7 +167,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       SubnetId: !Ref CSPubSubnet1
-      AllocationId: !GetAtt ElasticIPAddress.AllocationId
+      AllocationId: !GetAtt CSElasticIPAddress.AllocationId
       Tags:
         - Key: Name
           Value: CSNatGateway
