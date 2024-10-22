@@ -1,0 +1,67 @@
+Description: AutoScaling Group for Cloudshirt on Docker
+
+Resources:
+
+  CSLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: CS
+      Subnets:
+        - !ImportValue CSPubSubnet1
+        - !ImportValue CSPubSubnet2
+      SecurityGroups:
+        - !ImportValue CSSecurityGroup
+      Tags:
+        - Key: Name
+          Value: CSLoadBalancer
+
+  CSLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref CSLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref CSTargetGroup
+
+  CSTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: CSTargetGroup
+      VpcId: !ImportValue CSVPC
+      Port: 80
+      Protocol: HTTP
+
+  CSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchTemplate:
+      LaunchTemplateId: !Ref #launchtemplate hier
+      Version: !GetAtt #launchtemplate hier
+      DesiredCapacity: '2'
+      MaxSize: '10'
+      MinSize: '1'
+      VPCZoneIdentifier:
+        - !ImportValue CSPubSubnet1
+        - !ImportValue CSPubSubnet2
+      TargetGroupARNs:
+        -!Ref
+
+  CSScaleUP: # scales up
+    Type: "AWS::AutoScaling::ScheduledAction"
+    Properties: 
+      AutoScalingGroupName: !Ref CSAutoScalingGroup
+      DesiredCapacity: '9' 
+      MinSize: '1' 
+      MaxSize: '10' 
+      Recurrence: "0 22 * * *" # Eastern Time
+  
+  CSScaleDown: # scales down
+    Type: "AWS::AutoScaling::ScheduledAction"
+    Properties:
+      AutoScalingGroupName: !Ref CSAutoScalingGroup
+      DesiredCapacity: '2' 
+      MinSize: '1' 
+      MaxSize: '10' 
+      Recurrence: "0 0 * * *" # Eastern Time
