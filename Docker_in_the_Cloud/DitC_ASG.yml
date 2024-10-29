@@ -25,7 +25,7 @@ Resources:
             # Fetch the Swarm join token from SSM Parameter Store
             TOKEN=$(aws ssm get-parameter --name /docker/swarms/join-token --query Parameter.Value --output text --region us-east-1)
             # Replace <Swarm_Master_IP> with the actual private IP of the Swarm master
-            SWARM_MASTER_IP=10.0.1.89
+            SWARM_MASTER_IP=$(aws ssm get-parameter --name /docker/swarms/master-ip --query Parameter.Value --output text)
             docker swarm join --token $TOKEN $SWARM_MASTER_IP:2377
 
   CSLoadBalancer:
