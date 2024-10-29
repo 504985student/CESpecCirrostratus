@@ -1,4 +1,5 @@
 Description: A VPC (10.0.0.0/16) with two (public) subnets (/24) with internet gateway and routing table that allows full interaction between two subnets and outside world.
+#74 events to fully complete
 Parameters:
   VPCCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC.
