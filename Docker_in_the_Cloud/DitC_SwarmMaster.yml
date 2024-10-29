@@ -100,3 +100,9 @@ Outputs:
     Value: !Ref CSRepository
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", CSRepository ] ]
+
+  CSSwarmMasterRef:
+    Description: Reference to the swarm master
+    Value: !Ref DockerSwarmMasterInstance
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", DockerSwarmMasterInstance ] ]    
