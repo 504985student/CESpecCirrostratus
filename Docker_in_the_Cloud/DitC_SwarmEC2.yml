@@ -20,7 +20,7 @@ Resources:
 
               sudo systemctl start docker
               sudo docker run hello-world
-#            usermod -a -G docker ec2-user
+#              usermod -a -G docker ec2-user
 # alternatively; docker convenience script
 # curl -fsSL https://get.docker.com -o get-docker.sh
 # sudo sh get-docker.sh
