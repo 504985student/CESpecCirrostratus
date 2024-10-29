@@ -1,6 +1,16 @@
 Description: CloudFormation template that launches a build server as Docker Swarm master with SSM Parameter Store integration.
 
 Resources:
+  CSPushPullUser:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile: 
+        Password: password123
+      UserName: CSBuildServer
+      Tags: 
+        - Key: Name
+          Value: CSIAMUser
+
   DockerSwarmInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -62,17 +72,42 @@ Resources:
         - Key: Name
           Value: DockerSwarmMaster
 
-#    MyRepository: 
-#    Type: AWS::ECR::Repository
-#    Properties: 
-#      RepositoryName: "CloudShirtRepository"
-#      ImageScanningConfiguration: 
-#        ScanOnPush: true
-#      Statement: 
-#        - 
-#          Sid: AllowPushPull
-#          Effect: Allow
-#          Principal: 
-#            AWS: 
-#              - "arn:aws:iam::123456789012:user/Bob"
+  CSRepository: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: "cloudshirtrepository"
+      EmptyOnDelete: true
+      ImageScanningConfiguration: 
+        ScanOnPush: true
+      RepositoryPolicyText: 
+        Version: "2012-10-17"
+        Statement: 
+          - Sid: AllowPushPull
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !GetAtt CSPushPullUser.Arn
+            Action: 
+            - "ecr:GetDownloadUrlForLayer"
+            - "ecr:BatchGetImage"
+            - "ecr:BatchCheckLayerAvailability"
+            - "ecr:PutImage"
+            - "ecr:InitiateLayerUpload"
+            - "ecr:UploadLayerPart"
+            - "ecr:CompleteLayerUpload"
+      Tags:
+        - Key: Name
+          Value: cloudshirtrepository
 
+Outputs:
+  CSPushPullUserRef:
+    Description: Reference to the IAM profile
+    Value: !Ref CSPushPullUser
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSPushPullUser ] ]
+
+  CSRepoRef:
+    Description: Reference to the IAM profile
+    Value: !Ref CSRepository
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRepository ] ]
