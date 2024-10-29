@@ -1,5 +1,3 @@
-Description: EC2 instance that provisions a server with docker engine
-
 Resources:
   DockerSwarmTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -7,27 +5,23 @@ Resources:
       LaunchTemplateName: DockerSwarmTemplate
       LaunchTemplateData:
         KeyName: vockey
-#       SecurityGroups: !ImportValue CSSecurityGroup #Note: there is currently no SG present in the CF templates for this assignment
-        InstanceType: t3.medium
-        ImageId: ami-06b21ccaeff8cd686
+        SecurityGroupIds: # Use SecurityGroupIds instead of SecurityGroups
+          - !ImportValue CSNetworkDock:CSSecurityGroup
+        InstanceType: t2.micro 
+        ImageId: ami-0ebfd941bbafe70c6
         UserData:
           Fn::Base64: !Sub |
-              #!/bin/bash
-              sudo yum install -y yum-utils
-              sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-
-              sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin #This command does not work
-
-              sudo systemctl start docker
-              sudo docker run hello-world
-#              usermod -a -G docker ec2-user
-# alternatively; docker convenience script
-# curl -fsSL https://get.docker.com -o get-docker.sh
-# sudo sh get-docker.sh
-
-#   IamInstanceProfile: might be needed later
-
-
+            #!/bin/bash
+            sudo yum update -y
+            sudo yum install -y docker
+            sudo service docker start
+            sudo service docker start
+            sudo usermod -a -G docker ec2-user
+            systemctl enable docker
+            sudo chmod 666 /var/run/docker.sock
+            sudo curl -SL https://github.com/docker/compose/releases/download/v2.29.6/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            
   DockerSwarmMasterInstance:
     Type: AWS::EC2::Instance
     Properties:
@@ -36,6 +30,6 @@ Resources:
         Version: !GetAtt DockerSwarmTemplate.DefaultVersionNumber
       AvailabilityZone: !ImportValue CSNetworkDock:AvailabilityZone1
       SubnetId: !ImportValue CSNetworkDock:CSPubSubnet1
-
-
-
+      Tags:
+        - Key: Name
+          Value: DockerSwarmMaster
