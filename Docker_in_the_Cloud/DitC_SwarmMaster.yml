@@ -1,15 +1,13 @@
 Description: Cloudformation template that launches a build server as docker swarm master
-
+#
 Resources:
-  CSPushPullUser:
-    Type: AWS::IAM::User
+  CSPushPullProfile:
+    Type: AWS::IAM::InstanceProfile
     Properties:
-      LoginProfile: 
-        Password: password123
-      UserName: CSBuildServer
-      Tags: 
-        - Key: Name
-          Value: CSIAMUser
+      InstanceProfileName: CSPushPullProfile
+      Path: "/"
+      Roles: 
+        - LabRole
 
   DockerSwarmTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -43,6 +41,7 @@ Resources:
         Version: !GetAtt DockerSwarmTemplate.DefaultVersionNumber
       AvailabilityZone: !ImportValue CSNetworkDock:AvailabilityZone1
       SubnetId: !ImportValue CSNetworkDock:CSPubSubnet1
+      IamInstanceProfile: CSPushPullProfile
       Tags:
         - Key: Name
           Value: DockerSwarmMaster
@@ -50,39 +49,34 @@ Resources:
   CSRepository: 
     Type: AWS::ECR::Repository
     Properties: 
-      RepositoryName: "cloudshirtrepository"
+#      RepositoryName: "csrepository"
       EmptyOnDelete: true
-      ImageScanningConfiguration: 
-        ScanOnPush: true
       RepositoryPolicyText: 
         Version: "2012-10-17"
-        Statement: 
-          - Sid: AllowPushPull
+        Statement:
+          - 
+            Sid: AllowPushPull
             Effect: Allow
-            Principal: 
+            Principal:
               AWS: 
-                - !GetAtt CSPushPullUser.Arn
-            Action: 
-            - "ecr:GetDownloadUrlForLayer"
-            - "ecr:BatchGetImage"
-            - "ecr:BatchCheckLayerAvailability"
-            - "ecr:PutImage"
-            - "ecr:InitiateLayerUpload"
-            - "ecr:UploadLayerPart"
-            - "ecr:CompleteLayerUpload"
+                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${DockerSwarmMasterInstance}'
+#              AWS: !Join [ ":", [ arn:aws:ec2, !Ref "AWS::Region",!Ref "AWS::AccountId", !Join ["/", [instance, !Ref DockerSwarmMasterInstance] ] ] ]
+#              Alternative to !Sub function above, using the !Join function.
+            Action:
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:PutImage"
+              - "ecr:InitiateLayerUpload"
+              - "ecr:UploadLayerPart"
+              - "ecr:CompleteLayerUpload"
       Tags:
         - Key: Name
           Value: cloudshirtrepository
 
 Outputs:
-  CSPushPullUserRef:
-    Description: Reference to the IAM profile
-    Value: !Ref CSPushPullUser
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", CSPushPullUser ] ]
-
   CSRepoRef:
-    Description: Reference to the IAM profile
+    Description: Reference to the repository
     Value: !Ref CSRepository
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", CSRepository ] ]
