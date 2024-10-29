@@ -183,41 +183,41 @@ Resources:
   CSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow ssh, http and docker swarm ports
-      VpcId: !Ref CSVPC
-      SecurityGroupIngress:
-        - IpProtocol: -1 # Allow all protocols for HTTP
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: -1 # Allow all protocols for SSH
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: -1 # Allow all protocols for HTTPS
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp # Allow Docker swarm TCP
-          FromPort: 2377
-          ToPort: 2377
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp # Allow Docker swarm TCP port range 7946
-          FromPort: 7946
-          ToPort: 7946
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: udp # Allow Docker swarm UDP
-          FromPort: 4789
-          ToPort: 4789
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp # Allow custom app TCP port
-          FromPort: 5000
-          ToPort: 5000
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp # Allow custom app TCP port
-          FromPort: 3000
-          ToPort: 3000
-          CidrIp: 0.0.0.0/0
+    GroupDescription: Allow ssh, http and docker swarm ports
+    VpcId: !Ref CSVPC
+    SecurityGroupIngress:
+      - IpProtocol: -1 #use -1 to allow all protocols
+        FromPort: 80 #use FromPort and ToPort to apply to a port range. Use the same number twice to only use a specific port
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: -1
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: -1
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 2377
+        ToPort: 2377
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 7946
+        ToPort: 7496
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: 4789
+        ToPort: 4789
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 5000
+        ToPort: 5000
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 3000
+        ToPort: 3000
+        CidrIp: 0.0.0.0/0
 
 # Define outputs so values can be imported in another template
 Outputs:
@@ -274,9 +274,3 @@ Outputs:
     Value: !Ref AvailabilityZone2
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", AvailabilityZone2 ] ]
-
-  CSSecurityGroupRef:
-    Description: Reference to the Security Group
-    Value: !Ref CSSecurityGroup
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "CSSecurityGroup" ] ]
