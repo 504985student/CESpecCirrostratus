@@ -1,29 +1,54 @@
-Description: Cloudformation template that launches a build server as docker swarm master
+Description: CloudFormation template that launches a build server as Docker Swarm master with SSM Parameter Store integration.
 
 Resources:
+  DockerSwarmInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: LabRoleInstanceProfile
+      Roles:
+        - LabRole
+
   DockerSwarmTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: DockerSwarmTemplate
       LaunchTemplateData:
         KeyName: vockey
-        SecurityGroupIds: # Use SecurityGroupIds instead of SecurityGroups
+        SecurityGroupIds:
           - !ImportValue CSNetworkDock:CSSecurityGroup
         InstanceType: t2.micro 
         ImageId: ami-0ebfd941bbafe70c6
+        IamInstanceProfile:
+          Name: LabRoleInstanceProfile  # Use the instance profile associated with LabRole
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash
+            set -ex  # Enable debugging to log each command
+            
+            # Update and install Docker
             sudo yum update -y
             sudo yum install -y docker
-            sudo service docker start
             sudo service docker start
             sudo usermod -a -G docker ec2-user
             systemctl enable docker
             sudo chmod 666 /var/run/docker.sock
+
+            # Install Docker Compose
             sudo curl -SL https://github.com/docker/compose/releases/download/v2.29.6/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
+
+            # Initialize Docker Swarm
             docker swarm init
+            
+            # Obtain the Swarm join token for worker nodes
+            JOIN_TOKEN=$(docker swarm join-token -q worker)
+
+            # Store the token in AWS SSM Parameter Store
+            if [ -n "$JOIN_TOKEN" ]; then
+              aws ssm put-parameter --name /docker/swarms/join-token --value $JOIN_TOKEN --type String --overwrite
+            else
+              echo "Swarm join token not generated."
+            fi
 
   DockerSwarmMasterInstance:
     Type: AWS::EC2::Instance
@@ -37,17 +62,17 @@ Resources:
         - Key: Name
           Value: DockerSwarmMaster
 
-  MyRepository: 
-    Type: AWS::ECR::Repository
-    Properties: 
-      RepositoryName: "CloudShirtRepository"
-      ImageScanningConfiguration: 
-        ScanOnPush: true
-      Statement: 
-        - 
-          Sid: AllowPushPull
-          Effect: Allow
-          Principal: 
-            AWS: 
-              - "arn:aws:iam::123456789012:user/Bob"
+#    MyRepository: 
+#    Type: AWS::ECR::Repository
+#    Properties: 
+#      RepositoryName: "CloudShirtRepository"
+#      ImageScanningConfiguration: 
+#        ScanOnPush: true
+#      Statement: 
+#        - 
+#          Sid: AllowPushPull
+#          Effect: Allow
+#          Principal: 
+#            AWS: 
+#              - "arn:aws:iam::123456789012:user/Bob"
 
