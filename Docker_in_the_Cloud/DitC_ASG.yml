@@ -15,7 +15,6 @@ Resources:
         IamInstanceProfile:
           Name: LabRoleInstanceProfile  # Use the instance profile associated with LabRole
         UserData:
-<<<<<<< HEAD
           Fn::Base64: !Sub |
             #!/bin/bash
             yum update -y
@@ -28,23 +27,6 @@ Resources:
             # Replace <Swarm_Master_IP> with the actual private IP of the Swarm master
             SWARM_MASTER_IP=$(aws ssm get-parameter --name /docker/swarms/master-ip --query Parameter.Value --output text)
             docker swarm join --token $TOKEN $SWARM_MASTER_IP:2377
-=======
-          Fn::Base64: 
-            - !Sub |
-              #!/bin/bash
-              yum update -y
-              yum install -y docker
-              service docker start
-              usermod -aG docker ec2-user
-              systemctl enable docker
-              # Fetch the Swarm join token from SSM Parameter Store
-              TOKEN=$(aws ssm get-parameter --name /docker/swarms/join-token --query Parameter.Value --output text --region us-east-1)
-              # Replace <Swarm_Master_IP> with the actual private IP of the Swarm master
-              docker swarm join --token $TOKEN $SWARM_MASTER_IP:2377
-
-            - SWARM_MASTER_IP: 
-              - !ImportValue CSSwarmMaster.PrivateIP
->>>>>>> 1c4f426f1ba5eb6cc26339c074d81531ab9ac066
 
   CSLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
