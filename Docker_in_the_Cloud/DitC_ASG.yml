@@ -2,15 +2,41 @@ Description: AutoScaling Group for Cloudshirt on Docker
 
 Resources:
 
+  CSAutoScalingLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: DockerSwarmWorkerTemplate
+      LaunchTemplateData:
+        KeyName: vockey
+        InstanceType: t2.micro
+        SecurityGroupIds:
+          - !ImportValue CSNetworkDock:CSSecurityGroup # Importing Security Group from network.yaml
+        ImageId: ami-0ebfd941bbafe70c6
+        IamInstanceProfile:
+          Name: LabRoleInstanceProfile  # Use the instance profile associated with LabRole
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y docker
+            service docker start
+            usermod -aG docker ec2-user
+            systemctl enable docker
+            # Fetch the Swarm join token from SSM Parameter Store
+            TOKEN=$(aws ssm get-parameter --name /docker/swarms/join-token --query Parameter.Value --output text --region us-east-1)
+            # Replace <Swarm_Master_IP> with the actual private IP of the Swarm master
+            SWARM_MASTER_IP=10.0.1.89
+            docker swarm join --token $TOKEN $SWARM_MASTER_IP:2377
+
   CSLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: CS
       Subnets:
-        - !ImportValue CSPubSubnet1
-        - !ImportValue CSPubSubnet2
+        - !ImportValue CSNetworkDock:CSPubSubnet1
+        - !ImportValue CSNetworkDock:CSPubSubnet2
       SecurityGroups:
-        - !ImportValue CSSecurityGroup
+        - !ImportValue CSNetworkDock:CSSecurityGroup
       Tags:
         - Key: Name
           Value: CSLoadBalancer
@@ -29,7 +55,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: CSTargetGroup
-      VpcId: !ImportValue CSVPC
+      VpcId: !ImportValue CSNetworkDock:CSVPC
       Port: 80
       Protocol: HTTP
 
@@ -37,31 +63,31 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchTemplate:
-      LaunchTemplateId: !Ref #launchtemplate hier
-      Version: !GetAtt #launchtemplate hier
+        LaunchTemplateId: !Ref CSAutoScalingLaunchTemplate  # Correct reference to your Launch Template
+        Version: !GetAtt CSAutoScalingLaunchTemplate.LatestVersionNumber  # Correct reference to the latest version
       DesiredCapacity: '2'
       MaxSize: '10'
       MinSize: '1'
       VPCZoneIdentifier:
-        - !ImportValue CSPubSubnet1
-        - !ImportValue CSPubSubnet2
+        - !ImportValue CSNetworkDock:CSPubSubnet1
+        - !ImportValue CSNetworkDock:CSPubSubnet2
       TargetGroupARNs:
-        -!Ref
+        - !Ref CSTargetGroup
 
-  CSScaleUP: # scales up
-    Type: "AWS::AutoScaling::ScheduledAction"
+  CSScaleUP:  # scales up
+    Type: AWS::AutoScaling::ScheduledAction
     Properties: 
       AutoScalingGroupName: !Ref CSAutoScalingGroup
       DesiredCapacity: '9' 
       MinSize: '1' 
       MaxSize: '10' 
-      Recurrence: "0 22 * * *" # Eastern Time
+      Recurrence: "0 22 * * *"  # Eastern Time
   
-  CSScaleDown: # scales down
-    Type: "AWS::AutoScaling::ScheduledAction"
+  CSScaleDown:  # scales down
+    Type: AWS::AutoScaling::ScheduledAction
     Properties:
       AutoScalingGroupName: !Ref CSAutoScalingGroup
       DesiredCapacity: '2' 
       MinSize: '1' 
       MaxSize: '10' 
-      Recurrence: "0 0 * * *" # Eastern Time
+      Recurrence: "0 0 * * *"  # Eastern Time
