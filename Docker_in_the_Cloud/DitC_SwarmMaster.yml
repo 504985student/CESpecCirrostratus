@@ -4,7 +4,8 @@ Resources:
   CSPushPullUser:
     Type: AWS::IAM::User
     Properties:
-      LoginProfile: password123
+      LoginProfile: 
+        Password: password123
       UserName: CSBuildServer
       Tags: 
         - Key: Name

@@ -218,6 +218,9 @@ Resources:
           FromPort: 3000
           ToPort: 3000
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name 
+          Value: CSSecurityGroup
 
 # Define outputs so values can be imported in another template
 Outputs:
