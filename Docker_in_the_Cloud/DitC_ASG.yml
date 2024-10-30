@@ -13,7 +13,7 @@ Resources:
           - !ImportValue CSNetworkDock:CSSecurityGroup # Importing Security Group from network.yaml
         ImageId: ami-0ebfd941bbafe70c6
         IamInstanceProfile:
-          Name: LabRoleInstanceProfile  # Use the instance profile associated with LabRole
+          Name: LabInstanceProfile  # Use the instance profile associated with LabRole
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash
