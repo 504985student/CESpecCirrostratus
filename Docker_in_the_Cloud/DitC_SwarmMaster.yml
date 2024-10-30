@@ -1,14 +1,6 @@
 Description: Cloudformation template that launches a build server as docker swarm master
 #
 Resources:
-  CSPushPullProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      InstanceProfileName: CSPushPullProfile
-      Path: "/"
-      Roles: 
-        - LabRole
-
   DockerSwarmTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -17,10 +9,10 @@ Resources:
         KeyName: vockey
         SecurityGroupIds:
           - !ImportValue CSNetworkDock:CSSecurityGroup
-        InstanceType: t2.micro 
+        InstanceType: t2.large
         ImageId: ami-0ebfd941bbafe70c6
         IamInstanceProfile:
-          Name: CSPushPullProfile  # Use the instance profile associated with LabRole
+          Name: LabInstanceProfile  # Use the instance profile associated with LabRole
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash
@@ -42,6 +34,8 @@ Resources:
             docker swarm init
             
             aws ssm put-parameter --name /docker/swarms/master-ip --value $(hostname -I | awk '{print $1}') --type String --overwrite
+
+            #//TODO aws ecr create repository
 
             # Obtain the Swarm join token for worker nodes
             JOIN_TOKEN=$(docker swarm join-token -q worker)
@@ -66,41 +60,7 @@ Resources:
         - Key: Name
           Value: DockerSwarmMaster
 
-  CSRepository: 
-    Type: AWS::ECR::Repository
-    Properties: 
-#      RepositoryName: "csrepository"
-      EmptyOnDelete: true
-      RepositoryPolicyText: 
-        Version: "2012-10-17"
-        Statement:
-          - 
-            Sid: AllowPushPull
-            Effect: Allow
-            Principal:
-              AWS: 
-                - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${DockerSwarmMasterInstance}'
-#              AWS: !Join [ ":", [ arn:aws:ec2, !Ref "AWS::Region",!Ref "AWS::AccountId", !Join ["/", [instance, !Ref DockerSwarmMasterInstance] ] ] ]
-#              Alternative to !Sub function above, using the !Join function.
-            Action:
-              - "ecr:GetDownloadUrlForLayer"
-              - "ecr:BatchGetImage"
-              - "ecr:BatchCheckLayerAvailability"
-              - "ecr:PutImage"
-              - "ecr:InitiateLayerUpload"
-              - "ecr:UploadLayerPart"
-              - "ecr:CompleteLayerUpload"
-      Tags:
-        - Key: Name
-          Value: cloudshirtrepository
-
 Outputs:
-  CSRepoRef:
-    Description: Reference to the repository
-    Value: !Ref CSRepository
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", CSRepository ] ]
-
   CSSwarmMasterRef:
     Description: Reference to the swarm master
     Value: !Ref DockerSwarmMasterInstance
