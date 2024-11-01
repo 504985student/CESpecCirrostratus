@@ -4,3 +4,9 @@ provider "aws" {
   profile                 = "default"
 }
 
+provider "google" {
+  credentials = file("/.json")
+  project     = "<project>"
+  region      = "europe-west1"
+  version     = "~> 2.5.0"
+}

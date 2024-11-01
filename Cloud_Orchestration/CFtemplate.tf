@@ -4,8 +4,8 @@ resource "aws_cloudformation_stack" "CONetwork" {
 }
 
 resource "aws_cloudformation_stack" "CO_ASG" {
-    name = "CO_ASG"
-    depends_on = [aws_cloudformation_stack.CONetwerk]
+    name = "COASG"
+    depends_on = [aws_cloudformation_stack.CONetwork]
     template_body = file("${path.module}/CO_ASG.yml")
 }
 

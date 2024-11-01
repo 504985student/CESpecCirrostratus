@@ -21,6 +21,7 @@ Resources:
             # Update and install Docker
             sudo yum update -y
             sudo yum install -y docker
+            sudo yum install -y git
             sudo service docker start
             sudo usermod -a -G docker ec2-user
             systemctl enable docker
@@ -46,6 +47,10 @@ Resources:
             else
               echo "Swarm join token not generated."
             fi
+
+            git clone https://github.com/looking4ward/CloudShirt.git
+            cd CloudShirt
+            docker stack deploy --compose-file docker-compose.yml CloudShirtStack
 
   DockerSwarmMasterInstance:
     Type: AWS::EC2::Instance
