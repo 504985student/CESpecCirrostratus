@@ -55,7 +55,7 @@ Resources:
         Version: !GetAtt DockerSwarmTemplate.DefaultVersionNumber
       AvailabilityZone: !ImportValue CSNetworkDock:AvailabilityZone1
       SubnetId: !ImportValue CSNetworkDock:CSPubSubnet1
-      IamInstanceProfile: CSPushPullProfile
+      IamInstanceProfile: LabInstanceProfile
       Tags:
         - Key: Name
           Value: DockerSwarmMaster
