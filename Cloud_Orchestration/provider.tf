@@ -3,10 +3,3 @@ provider "aws" {
   region                  = "us-east-1"
   profile                 = "default"
 }
-
-provider "google" {
-  credentials = file("/.json")
-  project     = "<project>"
-  region      = "europe-west1"
-  version     = "~> 2.5.0"
-}
