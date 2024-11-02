@@ -1,0 +1,67 @@
+Description: Template for EC2 instance with Cloudshirt
+
+Resources:
+  CSLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: EC2InstanceTemplate
+      LaunchTemplateData:
+        KeyName: vockey
+        InstanceType: t2.micro
+        SecurityGroupIds:
+          - !ImportValue CSRDS:CSRDSSecurityGroupId
+        ImageId: ami-0ebfd941bbafe70c6
+        IamInstanceProfile:
+          Name: LabInstanceProfile  # Use the instance profile associated with LabRole
+        BlockDeviceMappings: 
+        - DeviceName: /dev/xvda
+          Ebs:
+            DeleteOnTermination: true 
+            VolumeType: gp2
+            VolumeSize: 32
+            Encrypted: "true" 
+        UserData: 
+          Fn::Base64: !Sub 
+          - | 
+            #!/bin/bash
+            # Update en installeer benodigde pakketten
+            yum update -y
+            yum upgrade -y
+
+            # Installeer git en .NET 6.0 runtime en SDK
+            yum install -y git
+            yum install -y aspnetcore-runtime-6.0
+            yum install -y dotnet-sdk-6.0
+
+            # Update specifieke dotnet versie met dnf
+            dnf update dotnet6.0 --releasever=2023.1.20230719 -y
+
+            # Clone de repository en bouw de applicatie
+            cd /root
+            sudo git clone https://github.com/looking4ward/CloudShirt.git
+            sed -i 's/Server.*CatalogDb;/Server=${RDSENDPOINT},1433;User ID=admin;Password=CloudShirt123;Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/' /root/CloudShirt/src/Web/appsettings.json
+            sed -i 's/Server.*Identity;/Server=${RDSENDPOINT},1433;User ID=admin;Password=CloudShirt123;Initial Catalog=Microsoft.eShopOnWeb.Identity;/' /root/CloudShirt/src/Web/appsettings.json
+
+            cd CloudShirt/src/Web
+
+            # Publiceer de dotnet applicatie
+            dotnet restore
+            dotnet publish -c Release -o ../../../release
+            cd ../../../release
+            dotnet Web.dll --urls "http://0.0.0.0:80"
+
+          - RDSENDPOINT:
+              Fn::ImportValue: CSRDS:CSRDSEndpoint
+
+Outputs:
+  CSEC2InstanceLaunchTemplateId:
+    Description: "The Id of the Launch Template"
+    Value: !Ref CSLaunchTemplate
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSLaunchTemplate ] ]
+
+  CSEC2InstanceLaunchTemplateVersion:
+    Description: "The Version of the Launch Template"
+    Value: !GetAtt CSLaunchTemplate.LatestVersionNumber
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSLaunchTemplateVersion ] ]

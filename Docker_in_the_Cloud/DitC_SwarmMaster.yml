@@ -36,7 +36,7 @@ Resources:
             
             aws ssm put-parameter --name /docker/swarms/master-ip --value $(hostname -I | awk '{print $1}') --type String --overwrite
 
-            aws ecr create-repository --repository-name csrepository
+            aws ecr create-repository --repository-name csrepository #create a repository in aws
 
             # Obtain the Swarm join token for worker nodes
             JOIN_TOKEN=$(docker swarm join-token -q worker)

@@ -1,5 +1,10 @@
 Description: An Amazon RDS
 Parameters:
+  NetworkStackName:
+    Description: Please enter the name of the Stack made with AWSB_Network.yml.
+    Type: String
+    Default: CSNetwork
+
   DBInstanceID:
     Default: CSRDSDB
     Description: the database instance

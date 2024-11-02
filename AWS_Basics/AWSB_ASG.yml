@@ -1,16 +1,20 @@
-Description: Template for EC2 instance with Cloudshirt
+Description: Template for an Autoscaling group for CS instances with scaling rules
+Parameters:
+  NetworkStackName:
+    Description: Please enter the name of the Stack made with AWSB_EC2.yml.
+    Type: String
+    Default: CSEC2Template
 
 Resources:
-
   CSLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: CS
       Subnets:
-        - !ImportValue CSPubSubnet1
-        - !ImportValue CSPubSubnet2
+        - !ImportValue CSNetwork:CSPubSubnet1
+        - !ImportValue CSNetwork:CSPubSubnet2
       SecurityGroups:
-        - !ImportValue CSSecurityGroup
+        - !ImportValue CSRDS:CSRDSSecurityGroupId
       Tags:
         - Key: Name
           Value: CSLoadBalancer
@@ -29,7 +33,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: CSTargetGroup
-      VpcId: !ImportValue CSVPC
+      VpcId: !ImportValue CSNetwork:CSVPC
       Port: 80
       Protocol: HTTP
 
@@ -37,16 +41,21 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchTemplate:
-      LaunchTemplateId: !Ref #launchtemplate hier
-      Version: !GetAtt #launchtemplate hier
+        LaunchTemplateId: !ImportValue CSEC2Template:CSLaunchTemplate
+        Version: !ImportValue CSEC2Template:CSLaunchTemplateVersion
       DesiredCapacity: '2'
       MaxSize: '10'
       MinSize: '1'
       VPCZoneIdentifier:
-        - !ImportValue CSPubSubnet1
-        - !ImportValue CSPubSubnet2
+        - !ImportValue CSNetwork:CSPubSubnet1
+        - !ImportValue CSNetwork:CSPubSubnet2
       TargetGroupARNs:
-        -!Ref
+        - !Ref CSTargetGroup
+      Tags:
+        - Key: Name
+          Value: EC2Instance
+          PropagateAtLaunch: true
+      
 
   CSScaleUP: # scales up
     Type: "AWS::AutoScaling::ScheduledAction"
