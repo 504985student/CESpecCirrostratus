@@ -25,6 +25,7 @@ Resources:
             sudo usermod -a -G docker ec2-user
             systemctl enable docker
             sudo chmod 666 /var/run/docker.sock
+            sudo yum install -y git
 
             # Install Docker Compose
             sudo curl -SL https://github.com/docker/compose/releases/download/v2.29.6/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
@@ -46,6 +47,11 @@ Resources:
             else
               echo "Swarm join token not generated."
             fi
+
+            git clone https://github.com/looking4ward/CloudShirt.git
+            cd CloudShirt
+            docker-compose build
+            docker-compose up
 
   DockerSwarmMasterInstance:
     Type: AWS::EC2::Instance
