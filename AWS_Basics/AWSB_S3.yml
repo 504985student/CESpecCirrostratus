@@ -1,7 +1,11 @@
-
+Parameters:
+  BucketName:
+    Description: Please enter the name of the bucket
+    Type: String
+    Default: cs-bucket-cespec-cirrostratus
 
 Resources:
-  S3Bucket:
+  CSBucket:
     Type: AWS::S3::Bucket
     Properties:
       PublicAccessBlockConfiguration:
@@ -10,7 +14,7 @@ Resources:
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
 #      AccessControl: PublicRead
-      BucketName: cs-bucket-cespec-cirrostratus
+      BucketName: !Ref BucketName
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
@@ -34,11 +38,17 @@ Resources:
             Resource: !Join 
               - ''
               - - 'arn:aws:s3:::'
-                - !Ref S3Bucket
+                - !Ref CSBucket
                 - /*
-      Bucket: !Ref S3Bucket
+      Bucket: !Ref CSBucket
 
 Outputs:
   WebsiteURL:
-    Value: !GetAtt S3Bucket.WebsiteURL
     Description: URL for website hosted on S3
+    Value: !GetAtt CSBucket.WebsiteURL
+
+  CSBucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref CSBucket
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", CSBucketName ] ]
