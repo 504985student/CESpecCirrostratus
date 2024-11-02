@@ -1,5 +1,5 @@
 provider "google" {
     credentials = file("/credentials.json")
-    project     = "smart-seer-434509-i6"
+    project     = "<project>"
     region      = "europe-west1"
 }
