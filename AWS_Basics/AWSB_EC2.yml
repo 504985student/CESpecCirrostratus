@@ -12,7 +12,7 @@ Resources:
           - !ImportValue CSRDS:CSRDSSecurityGroupId
         ImageId: ami-0ebfd941bbafe70c6
         IamInstanceProfile:
-          Name: LabInstanceProfile  # Use the instance profile associated with LabRole
+          Name: LabInstanceProfile
         BlockDeviceMappings: 
         - DeviceName: /dev/xvda
           Ebs:

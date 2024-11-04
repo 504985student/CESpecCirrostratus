@@ -10,10 +10,10 @@ Resources:
         KeyName: vockey
         InstanceType: t2.micro
         SecurityGroupIds:
-          - !ImportValue CONetwork:CSSecurityGroup # Importing Security Group from network.yaml
+          - !ImportValue CONetwork:CSSecurityGroup 
         ImageId: ami-0ebfd941bbafe70c6
         IamInstanceProfile:
-          Name: LabInstanceProfile  # Use the instance profile associated with LabRole
+          Name: LabInstanceProfile 
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash
@@ -63,8 +63,8 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchTemplate:
-        LaunchTemplateId: !Ref CSAutoScalingLaunchTemplate  # Correct reference to your Launch Template
-        Version: !GetAtt CSAutoScalingLaunchTemplate.LatestVersionNumber  # Correct reference to the latest version
+        LaunchTemplateId: !Ref CSAutoScalingLaunchTemplate  
+        Version: !GetAtt CSAutoScalingLaunchTemplate.LatestVersionNumber
       DesiredCapacity: '2'
       MaxSize: '10'
       MinSize: '1'
