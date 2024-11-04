@@ -5,7 +5,7 @@ Resources:
     Properties:
       FunctionName: S3BackupFunction
       Handler: index.lambda_handler
-      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/LabRole'  # Use LabRole ARN here
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/LabRole' 
       Code:
         ZipFile: |
           import boto3
