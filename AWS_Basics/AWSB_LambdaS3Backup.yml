@@ -33,11 +33,11 @@ Resources:
         - Arn: !GetAtt S3BackupLambdaFunction.Arn
           Id: S3BackupLambdaTarget
 
-  # CloudWatch Events Rule for Immediate Backup (1 minute after stack creation)
+  # CloudWatch Events Rule for Immediate Backup 
   ImmediateBackupScheduleRule:
     Type: AWS::Events::Rule
     Properties:
-      ScheduleExpression: rate(1 minute)  # Runs every minute
+      ScheduleExpression: rate(1 minute)
       Targets:
         - Arn: !GetAtt S3BackupLambdaFunction.Arn
           Id: ImmediateBackupLambdaTarget
@@ -62,5 +62,5 @@ Resources:
 
 Outputs:
   LambdaFunctionName:
-    Description: "The name of the Lambda function"
+    Description: The name of the Lambda function
     Value: !Ref S3BackupLambdaFunction

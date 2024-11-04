@@ -7,7 +7,7 @@ Resources:
       LaunchTemplateName: EC2InstanceTemplate
       LaunchTemplateData:
         KeyName: vockey
-        InstanceType: t2.micro
+        InstanceType: t2.medium
         SecurityGroupIds:
           - !ImportValue CSRDS:CSRDSSecurityGroupId
         ImageId: ami-0ebfd941bbafe70c6
